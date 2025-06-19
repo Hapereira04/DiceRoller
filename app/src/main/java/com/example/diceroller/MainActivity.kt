@@ -35,5 +35,5 @@ fun DiceRollerApp(){
 fun DiceWithButtonAndImage(modifier: Modifier = Modifier
     .fillMaxSize()
     .wrapContentSize(Alignment.Center)) {
-¬
+
 }
