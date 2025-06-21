@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun DiceRollerApp() {
     var gameState by remember { mutableStateOf(GameState()) }
@@ -99,6 +99,16 @@ fun DiceRollerApp() {
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
+        }
+
+        // Botão para reiniciar o jogo
+        if (gameState.gameFinished) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = { gameState = GameState() }
+            ) {
+                Text(text = "Jogar Novamente", fontSize = 24.sp)
+            }
         }
     }
 }
