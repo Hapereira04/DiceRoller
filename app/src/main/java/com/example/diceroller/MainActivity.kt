@@ -118,7 +118,12 @@ fun PlayerScore(playerNumber: Int, score: Int) {
     Text(
         text = "Player $playerNumber: $score pontos",
         fontSize = 20.sp,
-        color = if (score > 21) Color.Red else Color.Unspecified
+        color = when {
+            score > 21 -> Color.Red
+            playerNumber == 1 -> Color(0xFF6200EE) // Roxo para Player 1
+            else -> Color(0xFF03DAC6) // Teal para Player 2
+        },
+        fontWeight = if (score > 21) FontWeight.Bold else FontWeight.Normal
     )
 }
 
@@ -135,15 +140,14 @@ private fun getDiceImage(value: Int): Int {
 
 private fun determineWinner(score1: Int, score2: Int): String {
     return when {
-        score1 > 21 && score2 > 21 -> "Ambos perderam!"
-        score1 > 21 -> "Player 2 ganhou!"
-        score2 > 21 -> "Player 1 ganhou!"
-        score1 == score2 -> "Empate!"
-        score1 > score2 -> "Player 1 ganhou!"
-        else -> "Player 2 ganhou!"
+        score1 > 21 && score2 > 21 -> "Ambos estouraram 21!"
+        score1 > 21 -> "Player 1 estourou! Player 2 ganhou!"
+        score2 > 21 -> "Player 2 estourou! Player 1 ganhou!"
+        score1 == score2 -> "Empate! Ambos com $score1 pontos"
+        score1 > score2 -> "Player 1 ganhou com $score1 contra $score2!"
+        else -> "Player 2 ganhou com $score2 contra $score1!"
     }
 }
-
 
 @Composable
 fun DiceWithButtonAndImage(modifier: Modifier = Modifier) {
