@@ -22,9 +22,8 @@ jogo termina quando um jogador passa e ambos os jogadores fizeram as suas jogada
   
 ##  Para instalar no Android:
 
-Abre este link no teu dispositivo Android.
-https://drive.google.com/file/d/1Gnj6MGkpw0YNO85j9OfuRqfZkK3H1VSY/view?usp=sharing
-Faz o download do ficheiro APK.
-Quando o download terminar, abre o ficheiro.
-Autoriza a instalação de fontes desconhecidas (se necessário).
-A aplicação será instalada e estará pronta a usar.
+- Abre este link no teu dispositivo Android. https://drive.google.com/file/d/1Gnj6MGkpw0YNO85j9OfuRqfZkK3H1VSY/view?usp=sharing.
+- Faz o download do ficheiro APK.
+- Quando o download terminar, abre o ficheiro.
+- Autoriza a instalação de fontes desconhecidas (se necessário).
+- A aplicação será instalada e estará pronta a usar.
