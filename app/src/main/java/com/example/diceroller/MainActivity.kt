@@ -69,3 +69,39 @@ fun DiceWithButtonAndImage(modifier: Modifier = Modifier) {
         }
     }
 }
+
+data class GameState(
+    val player1Score: Int = 0,
+    val player2Score: Int = 0,
+    val currentPlayer: Int = 1, // 1 ou 2
+    val currentDiceValue: Int = 1,
+    val gameFinished: Boolean = false
+) {
+    fun rollDice(): GameState {
+        if (gameFinished) return this
+
+        val newValue = (1..6).random()
+        val newScore = if (currentPlayer == 1) {
+            player1Score + newValue
+        } else {
+            player2Score + newValue
+        }
+
+        return copy(
+            player1Score = if (currentPlayer == 1) newScore else player1Score,
+            player2Score = if (currentPlayer == 2) newScore else player2Score,
+            currentDiceValue = newValue,
+            gameFinished = newScore > 21
+        )
+    }
+
+    fun passTurn(): GameState {
+        if (gameFinished) return this
+
+        return if (currentPlayer == 2) {
+            copy(gameFinished = true)
+        } else {
+            copy(currentPlayer = 2, currentDiceValue = 1)
+        }
+    }
+}
