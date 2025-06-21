@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +45,31 @@ class MainActivity : ComponentActivity() {
 fun DiceRollerApp() {
     var gameState by remember { mutableStateOf(GameState()) }
 
+    if (gameState.nameInputPhase) {
+        NameInputScreen { p1Name, p2Name ->
+            gameState = gameState.copy(
+                player1Name = p1Name,
+                player2Name = p2Name,
+                nameInputPhase = false
+            )
+        }
+    } else {
+        GameScreen(
+            gameState = gameState,
+            onRollDice = { gameState = gameState.rollDice() },
+            onPassTurn = { gameState = gameState.passTurn() },
+            onRestart = { gameState = GameState() }
+        )
+    }
+}
+
+@Composable
+fun GameScreen(
+    gameState: GameState,
+    onRollDice: () -> Unit,
+    onPassTurn: () -> Unit,
+    onRestart: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -52,15 +78,16 @@ fun DiceRollerApp() {
     ) {
         // Mostra de quem é a vez
         Text(
-            text = if (gameState.currentPlayer == 1) "Vez do Player 1" else "Vez do Player 2",
+            text = if (gameState.currentPlayer == 1) "Vez do ${gameState.player1Name}"
+            else "Vez do ${gameState.player2Name}",
             fontSize = 24.sp,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
         // Mostra os pontos de cada jogador
-        PlayerScore(1, gameState.player1Score)
+        PlayerScore(gameState.player1Name, gameState.player1Score)
         Spacer(modifier = Modifier.height(8.dp))
-        PlayerScore(2, gameState.player2Score)
+        PlayerScore(gameState.player2Name, gameState.player2Score)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -75,7 +102,7 @@ fun DiceRollerApp() {
 
         // Botão de rolar
         Button(
-            onClick = { gameState = gameState.rollDice() },
+            onClick = onRollDice,
             enabled = !gameState.gameFinished
         ) {
             Text(text = "Rolar Dado", fontSize = 24.sp)
@@ -85,7 +112,7 @@ fun DiceRollerApp() {
 
         // Botão de passar
         Button(
-            onClick = { gameState = gameState.passTurn() },
+            onClick = onPassTurn,
             enabled = !gameState.gameFinished
         ) {
             Text(text = "Passar", fontSize = 24.sp)
@@ -95,17 +122,19 @@ fun DiceRollerApp() {
         if (gameState.gameFinished) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = determineWinner(gameState.player1Score, gameState.player2Score),
+                text = determineWinner(
+                    gameState.player1Name,
+                    gameState.player1Score,
+                    gameState.player2Name,
+                    gameState.player2Score
+                ),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
-        }
 
-        // Botão para reiniciar o jogo
-        if (gameState.gameFinished) {
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                onClick = { gameState = GameState() }
+                onClick = onRestart
             ) {
                 Text(text = "Jogar Novamente", fontSize = 24.sp)
             }
@@ -114,17 +143,59 @@ fun DiceRollerApp() {
 }
 
 @Composable
-fun PlayerScore(playerNumber: Int, score: Int) {
+fun PlayerScore(playerName: String, score: Int) {
     Text(
-        text = "Player $playerNumber: $score pontos",
+        text = "$playerName: $score pontos",
         fontSize = 20.sp,
         color = when {
             score > 21 -> Color.Red
-            playerNumber == 1 -> Color(0xFF6200EE) // Roxo para Player 1
-            else -> Color(0xFF03DAC6) // Teal para Player 2
+            playerName == "Player 1" -> Color(0xFF6200EE)
+            else -> Color(0xFF03DAC6)
         },
         fontWeight = if (score > 21) FontWeight.Bold else FontWeight.Normal
     )
+}
+
+@Composable
+fun NameInputScreen(
+    onNamesEntered: (String, String) -> Unit
+) {
+    var player1Name by remember { mutableStateOf("") }
+    var player2Name by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Digite os nomes dos jogadores", fontSize = 24.sp, modifier = Modifier.padding(bottom = 24.dp))
+
+        OutlinedTextField(
+            value = player1Name,
+            onValueChange = { player1Name = it },
+            label = { Text("Nome do Player 1") },
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        OutlinedTextField(
+            value = player2Name,
+            onValueChange = { player2Name = it },
+            label = { Text("Nome do Player 2") },
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+
+        Button(
+            onClick = {
+                val p1 = if (player1Name.isBlank()) "Player 1" else player1Name
+                val p2 = if (player2Name.isBlank()) "Player 2" else player2Name
+                onNamesEntered(p1, p2)
+            },
+            enabled = player1Name.isNotBlank() || player2Name.isNotBlank()
+        ) {
+            Text("Começar Jogo", fontSize = 20.sp)
+        }
+    }
 }
 
 private fun getDiceImage(value: Int): Int {
@@ -138,47 +209,29 @@ private fun getDiceImage(value: Int): Int {
     }
 }
 
-private fun determineWinner(score1: Int, score2: Int): String {
+private fun determineWinner(
+    player1Name: String, score1: Int,
+    player2Name: String, score2: Int
+): String {
     return when {
         score1 > 21 && score2 > 21 -> "Ambos estouraram 21!"
-        score1 > 21 -> "Player 1 estourou! Player 2 ganhou!"
-        score2 > 21 -> "Player 2 estourou! Player 1 ganhou!"
+        score1 > 21 -> "${player1Name} estourou! ${player2Name} ganhou!"
+        score2 > 21 -> "${player2Name} estourou! ${player1Name} ganhou!"
         score1 == score2 -> "Empate! Ambos com $score1 pontos"
-        score1 > score2 -> "Player 1 ganhou com $score1 contra $score2!"
-        else -> "Player 2 ganhou com $score2 contra $score1!"
-    }
-}
-
-@Composable
-fun DiceWithButtonAndImage(modifier: Modifier = Modifier) {
-    var result by remember { mutableStateOf( 1) }
-    val imageResource = when(result) {
-        1 -> R.drawable.dice_1
-        2 -> R.drawable.dice_2
-        3 -> R.drawable.dice_3
-        4 -> R.drawable.dice_4
-        5 -> R.drawable.dice_5
-        else -> R.drawable.dice_6
-    }
-    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Image(painter = painterResource(imageResource), contentDescription = result.toString())
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = { result = (1..6).random() },
-        ) {
-            Text(text = stringResource(R.string.roll), fontSize = 24.sp)
-        }
+        score1 > score2 -> "${player1Name} ganhou com $score1 contra $score2!"
+        else -> "${player2Name} ganhou com $score2 contra $score1!"
     }
 }
 
 data class GameState(
     val player1Score: Int = 0,
     val player2Score: Int = 0,
-    val currentPlayer: Int = 1, // 1 ou 2
+    val currentPlayer: Int = 1,
     val currentDiceValue: Int = 1,
-    val gameFinished: Boolean = false
+    val gameFinished: Boolean = false,
+    val player1Name: String = "Player 1",
+    val player2Name: String = "Player 2",
+    val nameInputPhase: Boolean = true
 ) {
     fun rollDice(): GameState {
         if (gameFinished) return this
